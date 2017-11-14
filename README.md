@@ -1,5 +1,5 @@
 # SEPA-Go 🚧🔥
-A lightweight Sepa client implemented with go lang. *Note*: the library is in an early development stage, use at your own risk. 
+A lightweight Sepa client implemented with go lang. **Note** : this library is in an early development stage, use at your own risk. 
 
 ## Installation
 
