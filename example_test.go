@@ -8,8 +8,7 @@ import (
 )
 
 func SimpleUsageExample()  {
-		cli, _ := NewClient(Configuration{"wot.arces.unibo.it", "wot.arces.unibo.it:8000/update",
-			"wot.arces.unibo.it:8000/query", "wot.arces.unibo.it:9000/subscribe"})
+		cli := NewDefaultClient("wot.arces.unibo.it")
 
 		err := cli.Update(`INSERT DATA
 	{

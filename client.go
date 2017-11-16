@@ -3,20 +3,22 @@ package sepa
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/arces-wot/SEPA-Go/sepa/sparql"
 	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
-	"fmt"
 	"sync"
-	"github.com/arces-wot/SEPA-Go/sepa/sparql"
-
 )
 
 type Client struct {
-	configuration Configuration
+	host           string
+	query_path     string
+	update_path    string
+	subscribe_path string
 }
 
 type subscribeRequest struct {
@@ -42,9 +44,15 @@ type subscribeSuccessResponse struct {
 	Alias      string `json:"alias"`
 }
 
-func NewClient(config Configuration) (Client, error) {
-	return Client{config}, nil
+func NewClient(config Configuration) Client {
+	return Client{
+		host:           config.Host,
+		query_path:     config.Host + config.Paths.Query,
+		update_path:    config.Host + config.Paths.Update,
+		subscribe_path: config.Host + config.Paths.Subscribe,
+	}
 }
+
 /*
 	Create a client connected to  a sepa engine with default settings:
 	"ports" : {
@@ -57,20 +65,19 @@ func NewClient(config Configuration) (Client, error) {
 			"query" : "/query" ,
 			"subscribe" : "/subscribe"
 		}
- */
-func NewDefaultClient(host string) (Client, error) {
+*/
+func NewDefaultClient(host string) Client {
 	config := Configuration{
-		Host:host,
-		Query:host+":8000/query",
-		Update:host+":8000/update",
-		Subscribe:host+":9000/subscribe",
+		Host:  host,
+		Ports: PortsType{Http: 8000, Ws: 9000},
+		Paths: PathsType{Query: "/query", Update: "/update", Subscribe: "/subscribe"},
 	}
-	return Client{config}, nil
+	return NewClient(config)
 }
 
 func (c *Client) Query(sparqlQuery string) (*sparql.Results, error) {
 	body := strings.NewReader(sparqlQuery)
-	resp, err := http.Post("http://"+c.configuration.Query, "application/sparql-query", body)
+	resp, err := http.Post("http://"+c.query_path, "application/sparql-query", body)
 
 	if err != nil {
 		return nil, err
@@ -82,14 +89,14 @@ func (c *Client) Query(sparqlQuery string) (*sparql.Results, error) {
 
 func (c *Client) Update(sparqlUpdate string) error {
 	body := strings.NewReader(sparqlUpdate)
-	_, err := http.Post("http://"+c.configuration.Update, "application/sparql-update", body)
+	_, err := http.Post("http://"+c.update_path, "application/sparql-update", body)
 	return err
 }
 
 func (c *Client) Subscribe(sparqlQuery string, handler func(notification *sparql.Notification)) (Subscription, error) {
 	header := http.Header{}
-	header.Set("Origin", c.configuration.Host)
-	conn, _, err := websocket.DefaultDialer.Dial("ws://"+c.configuration.Subscribe, header)
+	header.Set("Origin", c.host)
+	conn, _, err := websocket.DefaultDialer.Dial("ws://"+c.subscribe_path, header)
 	fail_sub := Subscription{}
 	if err != nil {
 		return fail_sub, err
@@ -106,27 +113,27 @@ func (c *Client) Subscribe(sparqlQuery string, handler func(notification *sparql
 		var waitForUnsubMessage sync.Mutex
 		waitForUnsubMessage.Lock()
 		subscription := Subscription{
-			client: c,
+			client:       c,
 			unserHandler: handler,
-			connection:conn,
-			Id: resp.Subscribed,
-			unsublock:&waitForUnsubMessage}
+			connection:   conn,
+			Id:           resp.Subscribed,
+			unsublock:    &waitForUnsubMessage}
 
 		go notificationReader(conn, subscription)
-		return subscription,nil
+		return subscription, nil
 	}
 
 	return fail_sub, err
 }
 
 func (c *Client) unsubscribe(subscription Subscription) error {
-	request := unsubscribeRequest{Unsubscribe:subscription.Id}
+	request := unsubscribeRequest{Unsubscribe: subscription.Id}
 
-	err:= subscription.connection.WriteJSON(request)
+	err := subscription.connection.WriteJSON(request)
 
 	if err == nil {
 		subscription.unsublock.Lock()
-		subscription.unsublock.Unlock()//free the lock
+		subscription.unsublock.Unlock() //free the lock
 	}
 
 	return err
@@ -167,16 +174,16 @@ func notificationReader(ws_conn *websocket.Conn, sub Subscription) {
 		case websocket.TextMessage:
 			smessage := string(message)
 
-			if ok,_ :=regexp.MatchString("^{ *\"results\" *:",smessage); ok {
+			if ok, _ := regexp.MatchString("^{ *\"results\" *:", smessage); ok {
 				reader := strings.NewReader(smessage)
 
 				if not, parse_error := sparql.ParseNotificationJson(reader); parse_error == nil {
 					sub.unserHandler(not)
 				}
 
-			} else if ok,_ := regexp.MatchString("^{ *\"ping\" *:",smessage); ok {
+			} else if ok, _ := regexp.MatchString("^{ *\"ping\" *:", smessage); ok {
 				fmt.Println("Ping")
-			}else if ok,_ := regexp.MatchString("^{ *\"unsubscribed\" *:",smessage); ok {
+			} else if ok, _ := regexp.MatchString("^{ *\"unsubscribed\" *:", smessage); ok {
 				//TODO: handle unsubcribe
 
 				//and exit
@@ -191,7 +198,3 @@ func notificationReader(ws_conn *websocket.Conn, sub Subscription) {
 	sub.unsublock.Unlock()
 	return
 }
-
-
-
-
