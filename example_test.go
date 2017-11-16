@@ -8,7 +8,7 @@ import (
 )
 
 func SimpleUsageExample()  {
-		cli, _ := NewClient(SEPAConfig{"wot.arces.unibo.it", "wot.arces.unibo.it:8000/update",
+		cli, _ := NewClient(Configuration{"wot.arces.unibo.it", "wot.arces.unibo.it:8000/update",
 			"wot.arces.unibo.it:8000/query", "wot.arces.unibo.it:9000/subscribe"})
 
 		err := cli.Update(`INSERT DATA

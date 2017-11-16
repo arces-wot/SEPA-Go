@@ -10,7 +10,7 @@ import (
 
 type Subscription struct {
 	Id string
-	client *SEPAClient
+	client *Client
 	unserHandler func(*sparql.Notification)
 	connection *websocket.Conn
 	unsublock *sync.Mutex

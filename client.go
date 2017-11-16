@@ -15,8 +15,8 @@ import (
 
 )
 
-type SEPAClient struct {
-	configuration SEPAConfig
+type Client struct {
+	configuration Configuration
 }
 
 type subscribeRequest struct {
@@ -42,8 +42,8 @@ type subscribeSuccessResponse struct {
 	Alias      string `json:"alias"`
 }
 
-func NewClient(config SEPAConfig) (SEPAClient, error) {
-	return SEPAClient{config}, nil
+func NewClient(config Configuration) (Client, error) {
+	return Client{config}, nil
 }
 /*
 	Create a client connected to  a sepa engine with default settings:
@@ -58,17 +58,17 @@ func NewClient(config SEPAConfig) (SEPAClient, error) {
 			"subscribe" : "/subscribe"
 		}
  */
-func NewDefaultClient(host string) (SEPAClient, error) {
-	config := SEPAConfig{
+func NewDefaultClient(host string) (Client, error) {
+	config := Configuration{
 		Host:host,
 		Query:host+":8000/query",
 		Update:host+":8000/update",
 		Subscribe:host+":9000/subscribe",
 	}
-	return SEPAClient{config}, nil
+	return Client{config}, nil
 }
 
-func (c *SEPAClient) Query(sparqlQuery string) (*sparql.Results, error) {
+func (c *Client) Query(sparqlQuery string) (*sparql.Results, error) {
 	body := strings.NewReader(sparqlQuery)
 	resp, err := http.Post("http://"+c.configuration.Query, "application/sparql-query", body)
 
@@ -80,13 +80,13 @@ func (c *SEPAClient) Query(sparqlQuery string) (*sparql.Results, error) {
 	return res, err
 }
 
-func (c *SEPAClient) Update(sparqlUpdate string) error {
+func (c *Client) Update(sparqlUpdate string) error {
 	body := strings.NewReader(sparqlUpdate)
 	_, err := http.Post("http://"+c.configuration.Update, "application/sparql-update", body)
 	return err
 }
 
-func (c *SEPAClient) Subscribe(sparqlQuery string, handler func(notification *sparql.Notification)) (Subscription, error) {
+func (c *Client) Subscribe(sparqlQuery string, handler func(notification *sparql.Notification)) (Subscription, error) {
 	header := http.Header{}
 	header.Set("Origin", c.configuration.Host)
 	conn, _, err := websocket.DefaultDialer.Dial("ws://"+c.configuration.Subscribe, header)
@@ -119,7 +119,7 @@ func (c *SEPAClient) Subscribe(sparqlQuery string, handler func(notification *sp
 	return fail_sub, err
 }
 
-func (c *SEPAClient) unsubscribe(subscription Subscription) error {
+func (c *Client) unsubscribe(subscription Subscription) error {
 	request := unsubscribeRequest{Unsubscribe:subscription.Id}
 
 	err:= subscription.connection.WriteJSON(request)

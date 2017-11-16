@@ -1,6 +1,6 @@
 package sepa
 
-type SEPAConfig struct {
+type Configuration struct {
 	Host string
 	Update string
 	Query string
