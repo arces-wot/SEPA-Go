@@ -47,9 +47,9 @@ type subscribeSuccessResponse struct {
 func NewClient(config Configuration) Client {
 	return Client{
 		host:           config.Host,
-		query_path:     config.Host + config.Paths.Query,
-		update_path:    config.Host + config.Paths.Update,
-		subscribe_path: config.Host + config.Paths.Subscribe,
+		query_path:     fmt.Sprintf("%s:%d%s", config.Host, config.Ports.Http, config.Paths.Query),
+		update_path:    fmt.Sprintf("%s:%d%s", config.Host, config.Ports.Http, config.Paths.Update),
+		subscribe_path: fmt.Sprintf("%s:%d%s", config.Host, config.Ports.Ws, config.Paths.Subscribe),
 	}
 }
 
