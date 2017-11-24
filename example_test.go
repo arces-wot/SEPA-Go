@@ -7,7 +7,7 @@ import (
 	"github.com/arces-wot/SEPA-Go/sepa/sparql"
 )
 
-func SimpleUsageExample()  {
+func Example() {
 		cli := NewDefaultClient("wot.arces.unibo.it")
 
 		err := cli.Update(`INSERT DATA
@@ -60,5 +60,6 @@ func SimpleUsageExample()  {
 		log.Println(err)
 		wg.Wait()
 		sub.Unsubscribe()
-		fmt.Println("Unsubscribed")
+		fmt.Println("Unsubscribe")
+		// Output: Unsubscribe
 }
