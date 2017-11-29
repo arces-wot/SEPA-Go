@@ -7,7 +7,7 @@ A lightweight Sepa client implemented with go lang. **Note** : this library is i
 
 ## Usage
 
-See the [example](https://github.com/arces-wot/SEPA-Go/blob/master/example_test.go) to have a brief overview of the library.
+See the [example1](https://github.com/arces-wot/SEPA-Go/blob/master/example_test.go) for an overview of client apis and [example2](https://github.com/arces-wot/SEPA-Go/blob/master/pac/example_test.go) for the new Publisher Aggregator Consumer apis.
 
 ## Contributing
 
