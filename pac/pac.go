@@ -24,6 +24,8 @@ type Application struct {
 	profile Profile
 }
 
+const EMPTYDATA  = ""
+
 func newApplication(profile Profile) Application {
 	client := sepa.NewClient(profile.Configuration)
 	return Application{client, profile}

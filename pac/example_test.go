@@ -23,12 +23,9 @@ func Example() {
 		fmt.Println("Cannot create clear:",ec)
 		return
 	}
-	//Clean the previous data
-	lang := struct {
-		Lang string
-	}{"Go"}
 
-	cleaner.Produce(lang)
+	//Clean the previous data
+	cleaner.Produce(EMPTYDATA)
 
 	//Create a consumer
 	consumer, e := application.newConsumer(queryName)
@@ -37,16 +34,13 @@ func Example() {
 		fmt.Println("Cannot create consumer:",e)
 		return
 	}
-	//TODO: use no data for query
-	data := struct {
-		A string
-		B string
-	}{"<http://example/lang>","<http://example/thebest>"}
+
+
 
 	//Used for sync
 	wg.Add(1)
 
-	if _, err := consumer.Consume(listen,data); err != nil{
+	if _, err := consumer.Consume(listen,EMPTYDATA); err != nil{
 		fmt.Println("Cannot consume query: ",err)
 		return
 	}
@@ -58,6 +52,9 @@ func Example() {
 		return
 	}
 
+	lang := struct {
+		Lang string
+	}{"Go"}
 	fmt.Println("Produce: ",lang)
 	producer.Produce(lang)
 	//Wait for notification
@@ -75,7 +72,7 @@ func initApp()Application  {
 
 	clearGraph := `DELETE DATA
 	{
-		<http://example/lang> <http://example/thebest> "??.Lang??"
+		<http://example/lang> <http://example/thebest> "GO"
 	}
 	`
 
@@ -85,7 +82,7 @@ func initApp()Application  {
 	}
 	`
 
-	simpleQuery := ` SELECT ?c WHERE { ??.A?? ??.B?? ?c }`
+	simpleQuery := ` SELECT ?c WHERE { <http://example/lang> <http://example/thebest> ?c }`
 
 
 
