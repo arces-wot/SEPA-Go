@@ -7,36 +7,15 @@ import (
 	"sync"
 )
 
+const queryName = "FINDLANG"
+const updateName = "PUTLANG"
+const updateClear = "REMOVELANG"
+
 var wg sync.WaitGroup
 
 func Example() {
-	config := sepa.DefaultConfig()
-	config.Host ="localhost"
-	profile := newProfile(config)
 
-	clearGraph := `DELETE DATA
-	{
-		<http://example/lang> <http://example/thebest> "??.Lang??"
-	}
-	`
-
-	simpleUpdate := `INSERT DATA
-	{
-		<http://example/lang> <http://example/thebest> "??.Lang??"
-	}
-	`
-
-	simpleQuery := ` SELECT ?c WHERE { ??.A?? ??.B?? ?c }`
-
-	const queryName = "FINDLANG"
-	const updateName = "PUTLANG"
-	const updateClear = "REMOVELANG"
-
-	profile.AddQuery(queryName,simpleQuery)
-	profile.AddUpdate(updateName,simpleUpdate)
-	profile.AddUpdate(updateClear,clearGraph)
-
-	application := newApplication(profile)
+	application := initApp()
 
 	cleaner, ec := application.newProducer(updateClear)
 
@@ -87,6 +66,34 @@ func Example() {
 	// Output:
 	// Produce:  {Go}
 	// Yes!
+}
+
+func initApp()Application  {
+	config := sepa.DefaultConfig()
+	config.Host ="localhost"
+	profile := newProfile(config)
+
+	clearGraph := `DELETE DATA
+	{
+		<http://example/lang> <http://example/thebest> "??.Lang??"
+	}
+	`
+
+	simpleUpdate := `INSERT DATA
+	{
+		<http://example/lang> <http://example/thebest> "??.Lang??"
+	}
+	`
+
+	simpleQuery := ` SELECT ?c WHERE { ??.A?? ??.B?? ?c }`
+
+
+
+	profile.AddQuery(queryName,simpleQuery)
+	profile.AddUpdate(updateName,simpleUpdate)
+	profile.AddUpdate(updateClear,clearGraph)
+
+	return newApplication(profile)
 }
 
 func listen(not *sparql.Notification)  {
