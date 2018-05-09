@@ -1,4 +1,6 @@
 # SEPA-Go 🚧🔥
+[![SEPA 0.8.4](https://img.shields.io/badge/SEPA-0.8.3-blue.svg)](https://github.com/arces-wot/SEPABins/blob/master/Engine/SEPAEngine_0.8.3.jar)
+
 A lightweight Sepa client implemented with go lang. **Note** : this library is in an early development stage, use at your own risk. 
 
 ## Installation
